@@ -1,13 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { Search, Package, Plus } from "lucide-react";
+import { Search, Package, Plus, ExternalLink, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { productsApi } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import OutsourcingModal from "@/components/outsourcing/OutsourcingModal";
 
 interface Product {
   id: number;
@@ -23,13 +25,27 @@ interface ProductPickerProps {
   selectedProduct: Product | null;
   onProductSelect: (product: Product) => void;
   onCreateNew?: () => void;
+  customerId?: number;
+  customerName?: string;
+  quotationId?: number;
+  onOutsourcedProductSelect?: (outsourcedOrder: any) => void;
 }
 
-export default function ProductPicker({ selectedProduct, onProductSelect, onCreateNew }: ProductPickerProps) {
+export default function ProductPicker({ 
+  selectedProduct, 
+  onProductSelect, 
+  onCreateNew, 
+  customerId, 
+  customerName, 
+  quotationId, 
+  onOutsourcedProductSelect 
+}: ProductPickerProps) {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [outsourcingModalOpen, setOutsourcingModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -107,14 +123,42 @@ export default function ProductPicker({ selectedProduct, onProductSelect, onCrea
             />
             <CommandList>
               <CommandEmpty>
-                <div className="text-center py-6">
-                  <p className="text-sm text-gray-500 mb-4">No products found</p>
-                  {onCreateNew && (
-                    <Button size="sm" onClick={onCreateNew}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create New Product
-                    </Button>
-                  )}
+                <div className="text-center py-6 space-y-4">
+                  <div>
+                    <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-4">No products found in inventory</p>
+                  </div>
+                  
+                  <Alert className="text-left">
+                    <ExternalLink className="h-4 w-4" />
+                    <AlertDescription>
+                      Don't worry! We can source this product from external suppliers to maintain your reputation.
+                    </AlertDescription>
+                  </Alert>
+
+                  <div className="flex flex-col space-y-2">
+                    {customerId && customerName && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedCategory(undefined); // Will be determined from search term
+                          setOutsourcingModalOpen(true);
+                          setOpen(false);
+                        }}
+                        className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Outsource from External Supplier
+                      </Button>
+                    )}
+                    {onCreateNew && (
+                      <Button size="sm" onClick={onCreateNew}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create New Product
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CommandEmpty>
               <CommandGroup>
@@ -161,6 +205,24 @@ export default function ProductPicker({ selectedProduct, onProductSelect, onCrea
           </Command>
         </PopoverContent>
       </Popover>
+
+      {/* Outsourcing Modal */}
+      <OutsourcingModal
+        open={outsourcingModalOpen}
+        onOpenChange={setOutsourcingModalOpen}
+        productName={searchTerm || "Product"}
+        category={selectedCategory}
+        customerId={customerId}
+        customerName={customerName || "Customer"}
+        quotationId={quotationId}
+        onOutsourcedOrderCreated={(order) => {
+          onOutsourcedProductSelect?.(order);
+          toast({
+            title: "Outsourced Order Created",
+            description: `${order.product.name} will be sourced from ${order.product.supplierName}`,
+          });
+        }}
+      />
     </div>
   );
 }

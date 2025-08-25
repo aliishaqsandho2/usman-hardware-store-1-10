@@ -93,6 +93,11 @@ const businessItems: MenuItem[] = [
     url: "/quotations",
     icon: Calculator,
   },
+  {
+    title: "Outsourced Orders",
+    url: "/outsourced-orders",
+    icon: MessageCircle,
+  },
 ]
 
 // Financial Management

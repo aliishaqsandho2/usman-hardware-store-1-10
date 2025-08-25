@@ -26,6 +26,7 @@ import Settings from "./pages/Settings";
 import BackupSync from "./pages/BackupSync";
 import Calendar from "./pages/Calendar";
 import AccountsReceivable from "./pages/AccountsReceivable";
+import OutsourcedOrders from "./pages/OutsourcedOrders";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
                     <Route path="/suppliers" element={<Suppliers />} />
                     <Route path="/purchase-orders" element={<PurchaseOrders />} />
                     <Route path="/quotations" element={<Quotations />} />
+                    <Route path="/outsourced-orders" element={<OutsourcedOrders />} />
                     <Route path="/expense-tracking" element={<ExpenseTracking />} />
                     <Route path="/customer-insights" element={<CustomerInsights />} />
                     <Route path="/notifications" element={<Notifications />} />
